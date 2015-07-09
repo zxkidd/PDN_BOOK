@@ -1,0 +1,275 @@
+\documentclass{book}
+ 
+\usepackage{latexsym, graphics}
+\usepackage{graphicx}
+\usepackage{amsmath} 
+ 
+\DeclareMathOperator{\Div}{div}
+\DeclareMathOperator{\Rot}{rot}
+\newcommand{\parder}[2]{\frac{\partial {#1}}{\partial {#2}}}
+ 
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\topmargin}{-0.30in}
+ 
+\setlength{\textheight}{9in}
+\setlength{\textwidth}{6in}
+ 
+\renewcommand{\baselinestretch}{2.0}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{property}{Property}[section]
+\newtheorem{problem}{Problem}[section]
+\newtheorem{formulation}{Formulation}[chapter]
+ 
+\newenvironment{proof}{{\bf Proof:}\ \ }{\begin{flushright} \ \\
+                       {$\Box$} \end{flushright}}
+\title{The Power Distribution Network Atlas:\\ 
+  An Overview of PDN Design Fundaments }
+\author{Ryan Coutts, Eric Zhang, C.K. Cheng}
+\date{ }
+  
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{Preface}
+
+This book is not targeted at the engineer who works with modern power distribution networks (PDN) every day.  This book is targeted at the engineer who handles some of the adjacent systems and should know some of the basic considerations that go into PDN design.  
+
+\subsection*{Organization}
+This book is organized into ... sections.
+
+PDN Atlas Outline (add low level)
+1.	Introduction 
+
+ a.	Introduction to the PDN 
+
+2.	Mathematics Fundamentals
+
+a.	RLC Models (Eric)
+
+b.	Scattering Parameters (Ryan)
+
+c.	Extraction Fundamentals (Ryan)
+
+d.	Simulation Backbones (Eric)
+
+3.	Architecture
+
+a.	Voltage Budgeting and the relationship to timing (Ryan)
+
+b.	Shared vs. Split rail Designs (Eric)
+
+c.	Serial, Differential and Logic Rails and their important parameters (Ryan)
+
+4.	Components
+
+a.	Voltage Regulators (Eric)
+
+b.	Printed Circuit Boards (Eric)
+
+c.	Decoupling Capacitors (Eric)
+
+d.	Substrate and Semiconductor Packaging (Eric)
+
+e.	Die Level Design
+
+i.	Wire resistance at the nm level (Ryan)
+
+ii.	Layout dependent effects (Ryan)
+
+iii.	Statistical analysis (Ryan)
+
+iv.	Power Gating (Ryan)
+
+v.	LDO (Ryan)
+
+5.	Advanced
+
+a.	3D IC and Advanced Packaging Effects (Eric)
+
+b.	Advanced Capacitors (Eric)
+
+c.	Capacitor Optimization (Eric)
+
+d.	Temperature dependent budget effects (Ryan)
+
+e.	Integrated Voltage Regulators (Ryan)
+ 
+\chapter{Mathematics Fundamentals}
+\section{The RLC Model}
+\section{Scattering Parameters}
+
+\textbf{Introduction}
+
+Although most PDN discussion start with a parametric evaluation of resistance, inductance and capacitance these three factors alone are not sufficient to describe the physics at work in a PDN system.  In reality, these systems are too large to be described by lumped elements.  
+
+For example, resistance is the real component of loss through the network.  An ideal resistor has the same amount of loss at all frequencies, however because of the specific field distribution in wire there are eddy currents which prevent the flow of current down the middle of the wire at high frequencies.  As a result, the current must them flow exclusively on the outer layer of metal forcing the same amount of current through less metal making the loss component of a wire increase with frequency.  The depth at which the current flows is called the skin depth and denoted as $\delta$.
+
+Due to the inability of the RLC model to describe and predict these effects, engineers have started to rely on full field solvers and scattering parameters.  A field solver is a software program which takes geometry, materials and boundary conditions as inputs and solves the electric and magnetic fields within a structure.  
+
+There are a variety of field solvers available with different algorithms which usually trade-off accuracy and runtime. The most notable algorithms are the Finite Element Method (FEM) and Finite Difference Time Domain (FDTD). 
+
+( More on Algorithms )
+
+Whatever algorithm is chosen to solve the structure the fundamental formulas they are solving are always Maxwell's Equations\cite{maxwells}.  Maxwell's equations are four equations together that describe how electric and magnetics fields behave.  Although these equations are solved the by fields solver, understanding them is an important aspect of using the field solver.  
+
+\textbf{Divergence}
+
+( Add Divergence )
+
+\textbf{Curl}
+
+( Add Curl )
+
+\textbf{Electric and Magnetic Fields}
+
+( Add description of magnetic and electric fields)
+
+\textbf{Gauss's Law}
+
+Gauss's law deals with the connection between the electric field and the electric charge stored within the volume.  The law says that the divergence of the electric field through any closed volume is equal to the amount of charge stored within the volume divided by the electric permeability of that volume.  This is written as equation \ref{eq:Gauss}.
+
+\begin{equation} \label{eq:Gauss}
+\nabla \cdot \vec{E}=\frac{\rho}{\epsilon_{0}} 
+\end{equation}
+
+What this means is that electric charge is created by a spatial difference of electric field.  We can relate the electric field to voltage and say that a voltage difference then must contain charge.  This equation then directly relates to the capacitor equation $Q=CV$ which relates the voltage difference to charge. 
+
+\textbf{Gauss's Law for Magnetism}
+
+Gauss's law relates the magnetic field to the magnetic charge stored in a volume.  The law says that the divergence of a magnetic field through any closed volume is equal to zero.  This is written as equation \ref{eq:GaussMagnetism}.
+
+\begin{equation} \label{eq:GaussMagnetism}
+\nabla \cdot \vec{B}=0
+\end{equation}
+
+
+Fundamentally, this means that magnetic charge does not exist in nature.  This implies that if you have a closed surface with a magnetic field, and charge does not exist, then any magnetic field lines entering the surface must also leave the surface with equal magnitude.  This in effect means that magnetic field lines are always drawn as ellipses that begin and end at the same location.  
+
+\textbf{Faraday's Law of Induction}
+
+Faraday's Law of Induction relates to how a changing magnetic field can create an electric field.  The law states that the curl of the electric field is equal to  the negative time derivative of the changing magnetic field. This is written as equation \ref{eq:FaradayLaw}.
+
+\begin{equation} \label{eq:FaradayLaw}
+\nabla \times \vec{E} = - \frac{\delta \vec{B}}{\delta t}
+\end{equation}
+
+
+This means that when theres an enclosing magnetic flux which is changing a voltage potential will be generated.
+
+\textbf{Ampere's Circuital Law}
+
+Ampere's Circuital Law relates the time varying electric field and current to the magnetic flux.  It says that current or a changing electric field will create a magnetic field .  This is written as equation \ref{eq:AmperesLaw}
+
+\begin{equation} \label{eq:AmperesLaw}
+\nabla \times \vec{B} = \mu_{0} \left(J + \epsilon_{0} \frac{\delta  \vec{E}}{\delta t} \right) 
+\end{equation}
+
+( Say something about this...)
+
+\textbf{Impulse Response Abstraction}
+
+The geometry and meshing that the field solvers do to obtain great accuracy can be abstracted to better leverage the technology.  The way that we leverage this is that we recognize that the system can be described by a linear time invariant (LTI) formulation.  This means that the system can be characterized at specific locations completely by an impulse response and re-used in future simulations without the field solver at almost no-accuracy loss and a huge speed increase.  This is done typically by leveraging scattering parameters.
+
+\textbf{Scattering Parameters} 
+
+Scattering parameters were developed to describe the frequency profile of a linear time-invariant system.  The concept is to take a voltage wave and inject it into a system at a port. Then measure the voltage wave at that port and another port.  This means that S-parameters are essentially formulated with only two ports.  In fact, S-paremeters are always characterized with two ports at a time, but can be extended to any number of ports.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\linewidth]{./Images/SParamaterBlackBox}
+\caption{}
+\label{fig:SParamaterBlackBox}
+\end{figure}
+
+The picture \ref{fig:SParamaterBlackBox} shows a typical 2-Port network.  In order to characterize port 1, $V_{1}^{+}$ is excited with a specific frequency with a port impedance of $R_{p}$ which is usually $50 \Omega $.  The return waves, $V_{x}^{-}$, are then measured in both phase and magnitude and recorded and the s-parameters are then generated for $S_{1x}$. This process is then repeated for the second port. Once complete the system can then be described by the s-parmaeter matrix equation \ref{eq:spar_mtx}.
+
+\begin{equation} \label{eq:spar_mtx}
+\begin{bmatrix} 
+V_{1}^{-} \\  V_{2}^{-}
+\end{bmatrix}
+=
+\begin{bmatrix} 
+S_{11} & S_{12} \\ 
+S_{21} & S_{22} 
+\end{bmatrix}
+\cdot
+\begin{bmatrix} 
+V_{1}^{+} \\  V_{2}^{+}
+\end{bmatrix}
+\end{equation}
+
+\begin{equation} 
+S_{11} = \frac{V_{1}^{-}}{V_{1}^{+}}, 
+S_{12} = \frac{V_{1}^{-}}{V_{1}^{+}},
+S_{21} = \frac{V_{1}^{-}}{V_{2}^{+}},
+S_{22} = \frac{V_{2}^{-}}{V_{2}^{+}},
+\end{equation}
+
+In this formulation, all of the parameters contain a phase and magnitude and are on the imaginary plane.  
+
+\textbf{Frequency to Time Domain Conversion}
+
+Once the frequency domain is characterized we can convert to the time domain.  Because the time domain contains all frequency points and the frequency points in the s-parameter are explicitly characterized, we must design the frequency points in the characterization to contain the important frequency content we care about.  If we take too little frequency points to characterize the time domain waveform and ask another tool to use the limited s-parameter information then this can introduce error.  The tools typically have some way of trying to handle the missing information, but none of them are as good as the real data.
+
+When converting from frequency to time domain there are two rules that we must enforce: causality and passivity. 
+
+Causality is the concept that the system will not respond until acted on.  This is to say that when computing the impulse response we expect all outputs to have no response before time=0s.  When there is frequency content missing in the s-parameter, the frequency error shows up at all frequencies including before the impulse.  This can cause stability issues in the simulation and as such simulators typically truncate the impulse response to prevent this phenomenon from effecting the results at the expense of accuracy.
+
+Passivity is 
+
+
+
+
+\textbf{Impedance Parameters}
+
+In PDN designs we typically have a current load and we want to evaluate the voltage response.  This 
+
+
+
+
+\section{Extraction Fundamentals}
+\section{Simulation Backbones}
+
+\chapter{Architecture}
+\section{Voltage Budget and Timing}
+\section{Shared vs. Split Rail Designs}
+\section{Serial, Differential, and Logic Rails and their Important Parameters}
+
+
+\chapter{Components}
+\section{Voltage Regulators}
+\section{Printed Circuit Boards (PCB)}
+\section{Decoupling Capacitors}
+\section{Substrate and Semiconductor Packaging}
+\section{Die Level Design}
+\subsection{Wire Resistance at the nm Level}
+\subsection{Layout Dependent Effects}
+\subsection{Statistical Analysis}
+\subsection{Power Gating}
+\subsection{LDO}
+
+\chapter{Advanced}
+\section{3D IC and Advanced Packaging Effects}
+\section{Advanced Capacitors}
+\section{Capacitor Optimization}
+\section{Temperature Dependent Budgeting}
+\section{Integrated Voltage Regulators}
+
+\begin{thebibliography}{99}
+\bibitem{maxwells}
+Maxwell's equations - Cite
+\end{thebibliography}
+
+
+
+\end{document}
+
